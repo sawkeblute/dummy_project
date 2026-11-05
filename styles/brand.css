@@ -1,0 +1,30 @@
+/* Stable red accent */
+:root { --purple: #e24d5c; }
+html:not([data-theme="light"]) body {
+  background: radial-gradient(ellipse at 77% 4%, rgb(137 42 55 / 15%), transparent 34rem), radial-gradient(ellipse at 20% 90%, rgb(44 83 119 / 9%), transparent 38rem), var(--bg);
+}
+.brand-mark { background: #df4656; color: #fff; }
+.brand-mark span { color: #fff; }
+.nav-item.active { color: #ff9ba4; background: rgb(217 71 87 / 12%); }
+.avatar { background: #48252b; color: #ffc0c5; }
+.notification-dot { background: #ef6471; }
+.primary-button { border-color: #e34c5c; background: #e34c5c; color: #fff; }
+.primary-button:hover:not(:disabled) { border-color: #f16a77; background: #f16a77; }
+.purple { color: #ff9ba4; background: #3d2228; }
+.purple-dot { background: #e45765; }
+.search-box:focus-within,.toolbar select:focus { border-color: #dc5361; }
+.spinner { border-top-color: #ed6571; }
+.text-button,.app-footer a:hover { color: #ff8e98; }
+.page-current { background: #3c2228; border-color: #77404a; color: #ffabb2; }
+.profile-more { border: 0; background: transparent; cursor: pointer; border-radius: 5px; }
+.profile-more:hover { color: #ff9ba4; background: rgb(217 71 87 / 12%); box-shadow: 0 5px 15px rgb(217 71 87 / 16%); }
+.brand:hover .brand-mark { box-shadow: 0 0 22px rgb(217 71 87 / 35%); }
+.primary-button:hover:not(:disabled),.filter-button:hover:not(:disabled),.pagination button:hover:not(:disabled) { box-shadow: 0 8px 22px rgb(217 71 87 / 22%); }
+.nav-item.active { box-shadow: inset 0 0 0 1px rgb(255 155 164 / 14%), 0 5px 16px rgb(217 71 87 / 13%); }
+.icon-button:hover,.row-action:hover { box-shadow: 0 4px 14px rgb(217 71 87 / 18%); }
+:focus-visible { outline-color: #f16a77; }
+.stat-card:hover { border-color: rgb(217 71 87 / 35%); }
+tbody tr:hover .product-thumb { border-color: rgb(217 71 87 / 38%); }
+html:not([data-theme="light"]) .grid-empty b { color: #e2e4e9; }
+html:not([data-theme="light"]) .text-button { color: #ff929c; }
+

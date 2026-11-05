@@ -1,0 +1,19 @@
+
+.activity-item time {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+.activity-empty {
+  padding: 28px 20px;
+  text-align: center;
+}
+.notification-dot[hidden] {
+  display: none;
+}
+@media (max-width: 650px) {
+  .activity-heading,
+  .activity-item {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

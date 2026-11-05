@@ -12,6 +12,13 @@ php -S localhost:8000
 
 Then visit `http://localhost:8000`.
 
+## Project structure
+
+- `index.html` contains the page structure.
+- `app.js` starts the app and shared navigation.
+- `scripts/` separates catalog data/rendering, admin actions, storefront, theme and profile controls, and cart behavior.
+- `styles.css` loads the feature stylesheets in `styles/` in cascade order.
+
 ## Deploy
 
 This is a static site. Import the folder or its GitHub repository into Netlify or Vercel and use the default settings (no build command; publish the project root). Railway can also serve it as a static site.
