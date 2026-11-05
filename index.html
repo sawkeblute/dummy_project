@@ -23,13 +23,13 @@
         >
         <div class="side-label">WORKSPACE</div>
         <nav>
-          <a class="nav-item active" href="#catalog" data-view="products"
+          <a class="nav-item active" href="#catalog" data-view="products" data-admin-only
             ><span class="nav-icon">▦</span>Products<span
               class="nav-count"
               id="side-count"
               >—</span
             ></a
-          ><a class="nav-item muted" href="#activity" data-view="activity"
+          ><a class="nav-item muted" href="#activity" data-view="activity" data-admin-only
             ><span class="nav-icon">◷</span>Activity</a
           >
         </nav>
@@ -47,15 +47,16 @@
       </aside>
 
       <main class="main" id="catalog">
-        <header class="topbar">
+        <header class="topbar" data-admin-only>
           <div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumb-current">Products</b></div>
           <div class="top-actions">
             <span class="live-indicator"><i></i> Live catalog</span
+            ><button class="mode-toggle" id="mode-toggle">◉ Customer view</button>
             ><button class="icon-button theme-toggle" id="theme-toggle" aria-label="Switch to light mode" title="Switch theme"><span id="theme-icon">☼</span></button>
             <button class="icon-button" id="notifications-button" aria-label="Notifications" title="Notifications">♧<span class="notification-dot"></span></button>
           </div>
         </header>
-        <section class="page-heading">
+        <section class="page-heading" data-admin-only>
           <div>
             <div class="eyebrow" id="page-eyebrow">YOUR INVENTORY</div>
             <h1>
@@ -67,7 +68,7 @@
             <span>＋</span> Add product
           </button>
         </section>
-        <section class="stats-grid" aria-label="Catalog summary" data-products-only>
+        <section class="stats-grid" aria-label="Catalog summary" data-products-only data-admin-only>
           <article class="stat-card">
             <div class="stat-top">
               <span>Total products</span><span class="stat-icon purple">▦</span>
@@ -101,7 +102,7 @@
             <div class="stat-note">Less than 10 units</div>
           </article>
         </section>
-        <section class="catalog-panel" data-products-only>
+        <section class="catalog-panel" data-products-only data-admin-only>
           <div class="catalog-title-row">
             <div>
               <h2>All products</h2>
@@ -112,7 +113,7 @@
                 <button class="view-button active" id="list-view-button" aria-label="List view" title="List view" aria-pressed="true">☰</button>
                 <button class="view-button" id="grid-view-button" aria-label="Grid view" title="Grid view" aria-pressed="false">▦</button>
               </div>
-              <button class="filter-button cart-button" id="cart-button" aria-label="Open shopping cart">♧ Cart <span id="cart-count">0</span></button>
+              <button class="filter-button cart-button" id="cart-button" data-customer-only hidden aria-label="Open shopping cart">♧ Cart <span id="cart-count">0</span></button>
               <button class="filter-button" id="refresh-button"><span class="refresh-icon">↻</span> Refresh</button>
             </div>
           </div>
@@ -174,11 +175,29 @@
             </div>
           </footer>
         </section>
-        <section class="activity-panel" id="activity-view" hidden>
+        <section class="activity-panel" id="activity-view" data-admin-only hidden>
           <div class="activity-heading"><div><h2>Recent activity</h2><p>Updates made to your catalog in this session.</p></div><span class="activity-live"><i></i> Tracking</span></div>
           <div id="activity-list" class="activity-list"></div>
         </section>
-        <footer class="app-footer">
+        <section class="storefront-view" id="storefront-view" hidden>
+          <header class="store-header">
+            <a class="store-logo" href="#store"><span class="brand-mark">S<span></span></span><span>stable<small>THOUGHTFUL GOODS</small></span></a>
+            <nav class="store-nav" aria-label="Store navigation"><a href="#store-products">Shop</a><a href="#store-categories">Collections</a><a href="#store-products">Our story</a></nav>
+            <div class="store-header-actions"><button class="icon-button theme-toggle" data-theme-toggle aria-label="Switch theme" title="Switch theme"><span data-theme-icon>☼</span></button><button class="store-cart-button" data-open-cart aria-label="Open shopping bag">Bag <span class="bag-count">0</span></button><button class="mode-toggle" id="admin-mode-toggle">Admin dashboard <span>↗</span></button></div>
+          </header>
+          <section class="store-hero">
+            <div class="store-hero-copy"><div class="eyebrow">THE STABLE EDIT · 2026</div><h1>Good things,<br><em>made to stay.</em></h1><p>Thoughtful everyday pieces, selected for the way you live.</p><a href="#store-products" class="hero-link">Explore the collection <span>↓</span></a></div>
+            <div class="hero-art" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-glow"></div><div class="hero-product">S</div><div class="hero-art-label"><span>THE EVERYDAY EDIT</span><b>Considered essentials</b></div></div>
+          </section>
+          <section class="store-collection" id="store-products">
+            <div class="store-section-head"><div><div class="eyebrow">MADE FOR YOUR EVERYDAY</div><h2>Shop the collection</h2><p>Find your next favorite.</p></div><div class="store-controls"><label class="store-search"><span>⌕</span><input id="store-search" type="search" placeholder="Search the collection" aria-label="Search products"></label><select id="store-sort" aria-label="Sort collection"><option value="featured">Featured</option><option value="title-asc">Name: A to Z</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating-desc">Top rated</option></select></div></div>
+            <div class="store-categories" id="store-categories" aria-label="Filter collection by category"></div>
+            <div class="store-product-grid" id="store-product-grid"></div>
+            <div class="store-empty" id="store-empty" hidden><b>Nothing found just yet</b><span>Try another search or collection.</span><button class="text-button" id="store-clear">Clear filters</button></div>
+          </section>
+          <section class="store-promise" id="store-promise"><span>Thoughtfully selected</span><i></i><span>Easy demo checkout</span><i></i><span>Made for everyday</span></section>
+        </section>
+        <footer class="app-footer" data-admin-only>
           <span>© 2026 Stable Store Manager</span
           ><span
             >Product data provided by

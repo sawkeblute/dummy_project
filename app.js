@@ -6,6 +6,7 @@ let currentPage = 1;
 let activity = [];
 let cart = new Map();
 let layout = 'list';
+let storeCategory = 'all';
 let toastTimer;
 
 const $ = (selector) => document.querySelector(selector);
@@ -122,7 +123,7 @@ function renderProducts() {
   list.innerHTML = pageProducts.map(product => {
     const stockClass = product.stock === 0 ? 'out' : product.stock < 10 ? 'low' : '';
     const stockLabel = product.stock === 0 ? 'Out of stock' : `${product.stock} units`;
-    const image = product.thumbnail || product.images?.[0] || '';
+    const image = product.images?.[0] || product.thumbnail || '';
     return `<tr>
       <td><button class="product-info product-open" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img class="product-thumb" src="${escapeHtml(image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span><span class="product-name" title="${escapeHtml(product.title)}">${escapeHtml(product.title)}</span><span class="product-brand">${escapeHtml(product.brand || '—')}</span></span></button></td>
       <td><span class="category-pill">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span></td>
@@ -133,13 +134,13 @@ function renderProducts() {
     </tr>`;
   }).join('');
   $('#product-grid').innerHTML = pageProducts.length ? pageProducts.map(product => {
-    const image = product.thumbnail || product.images?.[0] || '';
+    const image = product.images?.[0] || product.thumbnail || '';
     const stockClass = product.stock === 0 ? 'out' : product.stock < 10 ? 'low' : '';
     return `<article class="product-card">
       <button class="grid-image-button" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img class="grid-image" src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><span class="grid-category">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span></button>
       <div class="grid-card-body"><div class="grid-card-meta"><span>${escapeHtml(product.brand || 'Stable collection')}</span><span class="stock ${stockClass}"><i class="stock-dot"></i>${product.stock} in stock</span></div>
       <button class="grid-title" data-action="view" data-id="${escapeHtml(product.id)}">${escapeHtml(product.title)}</button><div class="grid-rating"><span>★</span> ${Number(product.rating || 0).toFixed(1)} <span class="grid-reviews">· ${Number(product.reviews?.length || 0)} reviews</span></div>
-      <div class="grid-card-bottom"><strong>$${Number(product.price).toFixed(2)}</strong><button class="add-cart-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>${icon('bag')} Add to bag</button></div></div>
+      <div class="grid-card-bottom"><strong>$${Number(product.price).toFixed(2)}</strong><button class="grid-view-link" data-action="view" data-id="${escapeHtml(product.id)}">View details <span>↗</span></button></div></div>
     </article>`;
   }).join('') : '<div class="grid-empty"><b>No products found</b><span>Try adjusting your search or filters.</span><button class="text-button" id="clear-grid-filters">Clear filters</button></div>';
   $('#table-wrap').hidden = layout === 'grid';
@@ -151,6 +152,29 @@ function renderProducts() {
   $('#previous-page').disabled = currentPage <= 1;
   $('#next-page').disabled = currentPage >= pageCount;
   $('#loading-state').hidden = true;
+  renderStorefront();
+}
+
+function renderStorefront() {
+  const container = $('#store-product-grid');
+  if (!container) return;
+  const query = $('#store-search').value.trim().toLowerCase();
+  const sort = $('#store-sort').value;
+  const categories = [...new Set(products.map(product => product.category).filter(Boolean))].sort();
+  $('#store-categories').innerHTML = `<button class="category-chip ${storeCategory === 'all' ? 'active' : ''}" data-store-category="all">All pieces</button>` + categories.map(category => `<button class="category-chip ${storeCategory === category ? 'active' : ''}" data-store-category="${escapeHtml(category)}">${escapeHtml(category.replaceAll('-', ' '))}</button>`).join('');
+  let collection = products.filter(product => {
+    const matchesQuery = !query || `${product.title} ${product.brand || ''} ${product.category} ${product.description || ''}`.toLowerCase().includes(query);
+    return matchesQuery && (storeCategory === 'all' || product.category === storeCategory);
+  });
+  if (sort === 'title-asc') collection.sort((a, b) => a.title.localeCompare(b.title));
+  if (sort === 'price-asc') collection.sort((a, b) => a.price - b.price);
+  if (sort === 'price-desc') collection.sort((a, b) => b.price - a.price);
+  if (sort === 'rating-desc') collection.sort((a, b) => b.rating - a.rating);
+  container.innerHTML = collection.map((product, index) => {
+    const image = product.images?.[0] || product.thumbnail || '';
+    return `<article class="store-product-card ${index === 0 ? 'store-featured-card' : ''}"><button class="store-card-image" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><span class="store-card-category">${escapeHtml((product.category || 'collection').replaceAll('-', ' '))}</span>${index < 3 ? '<span class="store-card-new">CURATED</span>' : ''}</button><div class="store-card-info"><div class="store-card-title-row"><div><button class="store-card-title" data-action="view" data-id="${escapeHtml(product.id)}">${escapeHtml(product.title)}</button><span class="store-card-brand">${escapeHtml(product.brand || 'Stable collection')}</span></div><span class="store-card-rating">★ ${Number(product.rating || 0).toFixed(1)}</span></div><div class="store-card-purchase"><strong>$${Number(product.price).toFixed(2)}</strong><button class="store-add-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>Add to bag <span>＋</span></button></div></div></article>`;
+  }).join('');
+  $('#store-empty').hidden = collection.length > 0;
 }
 
 function showToast(message) {
@@ -165,8 +189,20 @@ function setTheme(theme) {
   const light = theme === 'light';
   document.documentElement.dataset.theme = light ? 'light' : 'dark';
   $('#theme-icon').textContent = light ? '☾' : '☼';
+  document.querySelectorAll('[data-theme-icon]').forEach(icon => { icon.textContent = light ? '☾' : '☼'; });
+  document.querySelectorAll('[data-theme-toggle]').forEach(button => button.setAttribute('aria-label', `Switch to ${light ? 'dark' : 'light'} mode`));
   $('#theme-toggle').setAttribute('aria-label', `Switch to ${light ? 'dark' : 'light'} mode`);
   try { localStorage.setItem('stable-theme', light ? 'light' : 'dark'); } catch { /* Theme still applies when storage is unavailable. */ }
+}
+
+function setMode(customerMode) {
+  const shell = $('.app-shell');
+  shell.classList.toggle('customer-mode', customerMode);
+  if (customerMode) setView('products');
+  document.querySelectorAll('[data-admin-only]').forEach(element => { element.hidden = customerMode; });
+  document.querySelectorAll('[data-customer-only]').forEach(element => { element.hidden = !customerMode; });
+  $('#storefront-view').hidden = !customerMode;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function openDialog(product = null) {
@@ -186,9 +222,10 @@ function openDialog(product = null) {
 }
 
 function openDetails(product) {
-  const image = product.thumbnail || product.images?.[0] || '';
+  const image = product.images?.[0] || product.thumbnail || '';
   const stockLabel = product.stock > 0 ? `${product.stock} available` : 'Out of stock';
-  $('#details-content').innerHTML = `<div class="dialog-head details-top"><span class="eyebrow">PRODUCT DETAILS</span><button type="button" class="close-button" data-close="details-dialog" aria-label="Close">×</button></div><div class="details-layout"><div class="details-image-wrap"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" class="details-image" onerror="this.style.visibility='hidden'"></div><div class="details-info"><span class="category-pill">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span><h2>${escapeHtml(product.title)}</h2><p class="details-brand">${escapeHtml(product.brand || 'Stable collection')}</p><div class="details-rating"><span>★</span> ${Number(product.rating || 0).toFixed(1)} <span>·</span> ${escapeHtml(stockLabel)}</div><strong class="details-price">$${Number(product.price).toFixed(2)}</strong><p class="details-description">${escapeHtml(product.description || 'A considered addition to your collection.')}</p><div class="detail-purchase"><label for="detail-quantity">Quantity</label><input id="detail-quantity" type="number" min="1" max="${Math.max(1, Number(product.stock) || 0)}" value="1" ${product.stock < 1 ? 'disabled' : ''}><button class="primary-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>${icon('bag')} Add to bag</button></div><p class="purchase-note">Secure demo checkout · No payment details required</p></div></div>`;
+  const purchase = $('.app-shell').classList.contains('customer-mode') ? `<div class="detail-purchase"><label for="detail-quantity">Quantity</label><input id="detail-quantity" type="number" min="1" max="${Math.max(1, Number(product.stock) || 0)}" value="1" ${product.stock < 1 ? 'disabled' : ''}><button class="primary-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>${icon('bag')} Add to bag</button></div><p class="purchase-note">Demo checkout · No payment details required</p>` : '';
+  $('#details-content').innerHTML = `<div class="dialog-head details-top"><span class="eyebrow">PRODUCT DETAILS</span><button type="button" class="close-button" data-close="details-dialog" aria-label="Close">×</button></div><div class="details-layout"><div class="details-image-wrap"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" class="details-image" onerror="this.style.visibility='hidden'"></div><div class="details-info"><span class="category-pill">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span><h2>${escapeHtml(product.title)}</h2><p class="details-brand">${escapeHtml(product.brand || 'Stable collection')}</p><div class="details-rating"><span>★</span> ${Number(product.rating || 0).toFixed(1)} <span>·</span> ${escapeHtml(stockLabel)}</div><strong class="details-price">$${Number(product.price).toFixed(2)}</strong><p class="details-description">${escapeHtml(product.description || 'A considered addition to your collection.')}</p>${purchase}</div></div>`;
   $('#details-dialog').showModal();
 }
 
@@ -206,7 +243,8 @@ function renderCart() {
   const entries = [...cart.values()];
   const count = entries.reduce((sum, entry) => sum + entry.quantity, 0);
   $('#cart-count').textContent = count;
-  $('#cart-items').innerHTML = entries.length ? entries.map(({ product, quantity }) => `<article class="cart-item"><img src="${escapeHtml(product.thumbnail || product.images?.[0] || '')}" alt="" onerror="this.style.visibility='hidden'"><div class="cart-item-copy"><b>${escapeHtml(product.title)}</b><span>$${Number(product.price).toFixed(2)}</span><div class="quantity-control"><button data-cart-action="decrease" data-id="${escapeHtml(product.id)}" aria-label="Decrease quantity">−</button><span>${quantity}</span><button data-cart-action="increase" data-id="${escapeHtml(product.id)}" aria-label="Increase quantity">+</button><button class="cart-remove" data-cart-action="remove" data-id="${escapeHtml(product.id)}">Remove</button></div></div><strong class="cart-line-total">$${(product.price * quantity).toFixed(2)}</strong></article>`).join('') : '<div class="cart-empty"><span>♧</span><b>Your bag is empty</b><small>Explore the catalog and add something you like.</small></div>';
+  document.querySelectorAll('.bag-count').forEach(badge => { badge.textContent = count; });
+  $('#cart-items').innerHTML = entries.length ? entries.map(({ product, quantity }) => `<article class="cart-item"><img src="${escapeHtml(product.images?.[0] || product.thumbnail || '')}" alt="" onerror="this.style.visibility='hidden'"><div class="cart-item-copy"><b>${escapeHtml(product.title)}</b><span>$${Number(product.price).toFixed(2)}</span><div class="quantity-control"><button data-cart-action="decrease" data-id="${escapeHtml(product.id)}" aria-label="Decrease quantity">−</button><span>${quantity}</span><button data-cart-action="increase" data-id="${escapeHtml(product.id)}" aria-label="Increase quantity">+</button><button class="cart-remove" data-cart-action="remove" data-id="${escapeHtml(product.id)}">Remove</button></div></div><strong class="cart-line-total">$${(product.price * quantity).toFixed(2)}</strong></article>`).join('') : '<div class="cart-empty"><span>♧</span><b>Your bag is empty</b><small>Explore the catalog and add something you like.</small></div>';
   const subtotal = entries.reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0);
   $('#cart-subtotal').textContent = `$${subtotal.toFixed(2)}`;
   $('#checkout-button').disabled = !entries.length;
@@ -237,6 +275,7 @@ $('#notifications-button').addEventListener('click', () => {
 });
 
 $('#theme-toggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+document.querySelectorAll('[data-theme-toggle]').forEach(button => button.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')));
 $('#profile-button').addEventListener('click', () => $('#profile-dialog').showModal());
 document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
 $('#list-view-button').addEventListener('click', () => setLayout('list'));
@@ -250,6 +289,23 @@ function setLayout(value) {
   renderProducts();
 }
 $('#cart-button').addEventListener('click', () => { renderCart(); $('#cart-dialog').showModal(); });
+document.querySelectorAll('[data-open-cart]').forEach(button => button.addEventListener('click', () => { renderCart(); $('#cart-dialog').showModal(); }));
+$('#mode-toggle').addEventListener('click', () => setMode(true));
+$('#admin-mode-toggle').addEventListener('click', () => setMode(false));
+$('#store-search').addEventListener('input', renderStorefront);
+$('#store-sort').addEventListener('change', renderStorefront);
+$('#store-categories').addEventListener('click', event => {
+  const chip = event.target.closest('[data-store-category]');
+  if (!chip) return;
+  storeCategory = chip.dataset.storeCategory;
+  renderStorefront();
+});
+$('#store-clear').addEventListener('click', () => {
+  $('#store-search').value = '';
+  storeCategory = 'all';
+  $('#store-sort').value = 'featured';
+  renderStorefront();
+});
 
 async function handleProductAction(event) {
   const button = event.target.closest('[data-action]');
@@ -279,6 +335,7 @@ async function handleProductAction(event) {
 
 $('#product-list').addEventListener('click', handleProductAction);
 $('#product-grid').addEventListener('click', handleProductAction);
+$('#store-product-grid').addEventListener('click', handleProductAction);
 $('#details-content').addEventListener('click', event => {
   if (event.target.closest('[data-close]')) return $('#details-dialog').close();
   handleProductAction(event);

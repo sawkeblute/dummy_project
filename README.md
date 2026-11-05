@@ -1,6 +1,6 @@
 # Stable Product Catalog
 
-A responsive product catalog built with plain HTML, CSS, and JavaScript. It loads product data from [DummyJSON](https://dummyjson.com) and supports search, category filtering, sorting, list and grid layouts, product details, a demo shopping cart, and add, edit, and delete actions. The interface includes red accents, dark and light themes, and an admin profile card.
+A responsive product catalog built with plain HTML, CSS, and JavaScript. It loads product data from [DummyJSON](https://dummyjson.com) and offers separate admin and customer storefront views. The storefront supports search, category filtering, sorting, product details, and a demo shopping cart. The admin dashboard supports product search, category filtering, sorting, list and grid layouts, product details, and add, edit, and delete actions. Both views share red accents and dark and light themes.
 
 ## Run locally
 
@@ -20,4 +20,4 @@ This is a static site. Import the folder or its GitHub repository into Netlify o
 
 DummyJSON simulates product creation, updates, and deletions. The interface reflects those actions during the current session, but DummyJSON does not persist them to its source catalog. A real store that needs durable inventory changes should use a backend and database.
 
-Cart and checkout are also demonstrations. Checkout does not collect payment details; it updates the displayed stock for the current session only.
+Cart and checkout are demonstrations available in customer view. Checkout does not collect payment details; it updates the displayed stock for the current session only.
