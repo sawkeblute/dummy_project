@@ -175,6 +175,32 @@ function renderStorefront() {
     return `<article class="store-product-card ${index === 0 ? 'store-featured-card' : ''}"><button class="store-card-image" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><span class="store-card-category">${escapeHtml((product.category || 'collection').replaceAll('-', ' '))}</span>${index < 3 ? '<span class="store-card-new">CURATED</span>' : ''}</button><div class="store-card-info"><div class="store-card-title-row"><div><button class="store-card-title" data-action="view" data-id="${escapeHtml(product.id)}">${escapeHtml(product.title)}</button><span class="store-card-brand">${escapeHtml(product.brand || 'Stable collection')}</span></div><span class="store-card-rating">★ ${Number(product.rating || 0).toFixed(1)}</span></div><div class="store-card-purchase"><strong>$${Number(product.price).toFixed(2)}</strong><button class="store-add-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>Add to bag <span>＋</span></button></div></div></article>`;
   }).join('');
   $('#store-empty').hidden = collection.length > 0;
+  renderDeals();
+}
+
+function renderDeals() {
+  const deals = products.filter(product => Number(product.discountPercentage) > 0).sort((a, b) => Number(b.discountPercentage) - Number(a.discountPercentage));
+  const banner = $('#hot-deals');
+  const picks = $('#deal-picks');
+  if (!deals.length) {
+    banner.hidden = true;
+    picks.hidden = true;
+    return;
+  }
+  banner.hidden = false;
+  picks.hidden = false;
+  const featured = deals[0];
+  const discount = Math.round(Number(featured.discountPercentage));
+  const originalPrice = featured.price / (1 - Number(featured.discountPercentage) / 100);
+  const image = featured.images?.[0] || featured.thumbnail || '';
+  $('#deal-max-discount').textContent = `${discount}%`;
+  $('#deal-feature').innerHTML = `<button class="deal-feature-product" data-action="view" data-id="${escapeHtml(featured.id)}" aria-label="View deal: ${escapeHtml(featured.title)}"><span class="deal-off-badge">−${discount}%</span><img src="${escapeHtml(image)}" alt="${escapeHtml(featured.title)}" onerror="this.style.visibility='hidden'"><span class="deal-feature-caption"><b>${escapeHtml(featured.title)}</b><span><strong>$${Number(featured.price).toFixed(2)}</strong><del>$${originalPrice.toFixed(2)}</del></span></span></button>`;
+  $('#deal-product-grid').innerHTML = deals.slice(0, 4).map(product => {
+    const percent = Math.round(Number(product.discountPercentage));
+    const was = product.price / (1 - Number(product.discountPercentage) / 100);
+    const photo = product.images?.[0] || product.thumbnail || '';
+    return `<article class="deal-product-card"><button class="deal-product-image" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img src="${escapeHtml(photo)}" alt="${escapeHtml(product.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><span>−${percent}%</span></button><div class="deal-product-copy"><button data-action="view" data-id="${escapeHtml(product.id)}">${escapeHtml(product.title)}</button><span>${escapeHtml(product.brand || 'Stable collection')}</span><div><strong>$${Number(product.price).toFixed(2)}</strong><del>$${was.toFixed(2)}</del><button class="deal-add-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>Add to bag</button></div></div></article>`;
+  }).join('');
 }
 
 function showToast(message) {
@@ -336,6 +362,8 @@ async function handleProductAction(event) {
 $('#product-list').addEventListener('click', handleProductAction);
 $('#product-grid').addEventListener('click', handleProductAction);
 $('#store-product-grid').addEventListener('click', handleProductAction);
+$('#deal-feature').addEventListener('click', handleProductAction);
+$('#deal-product-grid').addEventListener('click', handleProductAction);
 $('#details-content').addEventListener('click', event => {
   if (event.target.closest('[data-close]')) return $('#details-dialog').close();
   handleProductAction(event);

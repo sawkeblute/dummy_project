@@ -181,14 +181,19 @@
         </section>
         <section class="storefront-view" id="storefront-view" hidden>
           <header class="store-header">
-            <a class="store-logo" href="#store"><span class="brand-mark">S<span></span></span><span>stable<small>THOUGHTFUL GOODS</small></span></a>
-            <nav class="store-nav" aria-label="Store navigation"><a href="#store-products">Shop</a><a href="#store-categories">Collections</a><a href="#store-products">Our story</a></nav>
+            <a class="store-logo" href="#store-products" aria-label="Stable collection"><span class="brand-mark">S<span></span></span><span>stable<small>THOUGHTFUL GOODS</small></span></a>
             <div class="store-header-actions"><button class="icon-button theme-toggle" data-theme-toggle aria-label="Switch theme" title="Switch theme"><span data-theme-icon>☼</span></button><button class="store-cart-button" data-open-cart aria-label="Open shopping bag">Bag <span class="bag-count">0</span></button><button class="mode-toggle" id="admin-mode-toggle">Admin dashboard <span>↗</span></button></div>
           </header>
           <section class="store-hero">
             <div class="store-hero-copy"><div class="eyebrow">THE STABLE EDIT · 2026</div><h1>Good things,<br><em>made to stay.</em></h1><p>Thoughtful everyday pieces, selected for the way you live.</p><a href="#store-products" class="hero-link">Explore the collection <span>↓</span></a></div>
             <div class="hero-art" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-glow"></div><div class="hero-product">S</div><div class="hero-art-label"><span>THE EVERYDAY EDIT</span><b>Considered essentials</b></div></div>
           </section>
+          <section class="hot-deal-banner" id="hot-deals" hidden>
+            <div class="deal-banner-copy"><span class="deal-kicker"><i></i> THE STABLE SALE EDIT</span><h2>Good finds.<br><em>Even better prices.</em></h2><p>Selected pieces from the collection, at a little less.</p><a href="#deal-picks" class="deal-cta">Shop hot deals <span>↗</span></a></div>
+            <div class="deal-feature" id="deal-feature"></div>
+            <div class="deal-stamp"><span>UP TO</span><strong id="deal-max-discount">—</strong><small>OFF</small></div>
+          </section>
+          <section class="deal-picks" id="deal-picks" hidden><div class="deal-section-title"><div><span class="eyebrow">A LITTLE LESS, A LOT TO LOVE</span><h2>Hot deals</h2></div><span>Selected offers from the current catalog</span></div><div class="deal-product-grid" id="deal-product-grid"></div></section>
           <section class="store-collection" id="store-products">
             <div class="store-section-head"><div><div class="eyebrow">MADE FOR YOUR EVERYDAY</div><h2>Shop the collection</h2><p>Find your next favorite.</p></div><div class="store-controls"><label class="store-search"><span>⌕</span><input id="store-search" type="search" placeholder="Search the collection" aria-label="Search products"></label><select id="store-sort" aria-label="Sort collection"><option value="featured">Featured</option><option value="title-asc">Name: A to Z</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating-desc">Top rated</option></select></div></div>
             <div class="store-categories" id="store-categories" aria-label="Filter collection by category"></div>
