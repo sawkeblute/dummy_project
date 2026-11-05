@@ -4,6 +4,8 @@ let products = [];
 let visibleProducts = [];
 let currentPage = 1;
 let activity = [];
+let cart = new Map();
+let layout = 'list';
 let toastTimer;
 
 const $ = (selector) => document.querySelector(selector);
@@ -90,6 +92,16 @@ function updateStats() {
   $('#stat-stock').textContent = products.filter(p => p.stock < 10).length;
 }
 
+function icon(name) {
+  const paths = {
+    view: '<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/>',
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
+    trash: '<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/>',
+    bag: '<path d="M5 8h14l1 13H4L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/>'
+  };
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg>`;
+}
+
 function renderProducts() {
   const query = $('#search').value.trim().toLowerCase();
   const category = $('#category-filter').value;
@@ -112,14 +124,26 @@ function renderProducts() {
     const stockLabel = product.stock === 0 ? 'Out of stock' : `${product.stock} units`;
     const image = product.thumbnail || product.images?.[0] || '';
     return `<tr>
-      <td><div class="product-info"><img class="product-thumb" src="${escapeHtml(image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="product-name" title="${escapeHtml(product.title)}">${escapeHtml(product.title)}</div><div class="product-brand">${escapeHtml(product.brand || '—')}</div></div></div></td>
+      <td><button class="product-info product-open" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img class="product-thumb" src="${escapeHtml(image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span><span class="product-name" title="${escapeHtml(product.title)}">${escapeHtml(product.title)}</span><span class="product-brand">${escapeHtml(product.brand || '—')}</span></span></button></td>
       <td><span class="category-pill">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span></td>
       <td class="price">$${Number(product.price).toFixed(2)}</td>
       <td><span class="stock ${stockClass}"><i class="stock-dot"></i>${stockLabel}</span></td>
       <td class="rating"><span>★</span>${Number(product.rating || 0).toFixed(1)}</td>
-      <td class="actions"><button class="row-action" data-action="edit" data-id="${escapeHtml(product.id)}" aria-label="Edit ${escapeHtml(product.title)}" title="Edit">✎</button><button class="row-action" data-action="delete" data-id="${escapeHtml(product.id)}" aria-label="Delete ${escapeHtml(product.title)}" title="Delete">⌫</button></td>
+      <td class="actions"><button class="row-action" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}" title="View">${icon('view')}</button><button class="row-action" data-action="edit" data-id="${escapeHtml(product.id)}" aria-label="Edit ${escapeHtml(product.title)}" title="Edit">${icon('edit')}</button><button class="row-action delete-action" data-action="delete" data-id="${escapeHtml(product.id)}" aria-label="Delete ${escapeHtml(product.title)}" title="Delete">${icon('trash')}</button></td>
     </tr>`;
   }).join('');
+  $('#product-grid').innerHTML = pageProducts.length ? pageProducts.map(product => {
+    const image = product.thumbnail || product.images?.[0] || '';
+    const stockClass = product.stock === 0 ? 'out' : product.stock < 10 ? 'low' : '';
+    return `<article class="product-card">
+      <button class="grid-image-button" data-action="view" data-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(product.title)}"><img class="grid-image" src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><span class="grid-category">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span></button>
+      <div class="grid-card-body"><div class="grid-card-meta"><span>${escapeHtml(product.brand || 'Stable collection')}</span><span class="stock ${stockClass}"><i class="stock-dot"></i>${product.stock} in stock</span></div>
+      <button class="grid-title" data-action="view" data-id="${escapeHtml(product.id)}">${escapeHtml(product.title)}</button><div class="grid-rating"><span>★</span> ${Number(product.rating || 0).toFixed(1)} <span class="grid-reviews">· ${Number(product.reviews?.length || 0)} reviews</span></div>
+      <div class="grid-card-bottom"><strong>$${Number(product.price).toFixed(2)}</strong><button class="add-cart-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>${icon('bag')} Add to bag</button></div></div>
+    </article>`;
+  }).join('') : '<div class="grid-empty"><b>No products found</b><span>Try adjusting your search or filters.</span><button class="text-button" id="clear-grid-filters">Clear filters</button></div>';
+  $('#table-wrap').hidden = layout === 'grid';
+  $('#product-grid').hidden = layout !== 'grid';
   $('#empty-state').hidden = visibleProducts.length > 0;
   const shownEnd = Math.min(start + PAGE_SIZE, visibleProducts.length);
   $('#result-count').textContent = visibleProducts.length ? `Showing ${start + 1}–${shownEnd} of ${visibleProducts.length} products` : 'Showing 0 products';
@@ -135,6 +159,14 @@ function showToast(message) {
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+function setTheme(theme) {
+  const light = theme === 'light';
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  $('#theme-icon').textContent = light ? '☾' : '☼';
+  $('#theme-toggle').setAttribute('aria-label', `Switch to ${light ? 'dark' : 'light'} mode`);
+  try { localStorage.setItem('stable-theme', light ? 'light' : 'dark'); } catch { /* Theme still applies when storage is unavailable. */ }
 }
 
 function openDialog(product = null) {
@@ -153,6 +185,33 @@ function openDialog(product = null) {
   $('#input-title').focus();
 }
 
+function openDetails(product) {
+  const image = product.thumbnail || product.images?.[0] || '';
+  const stockLabel = product.stock > 0 ? `${product.stock} available` : 'Out of stock';
+  $('#details-content').innerHTML = `<div class="dialog-head details-top"><span class="eyebrow">PRODUCT DETAILS</span><button type="button" class="close-button" data-close="details-dialog" aria-label="Close">×</button></div><div class="details-layout"><div class="details-image-wrap"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" class="details-image" onerror="this.style.visibility='hidden'"></div><div class="details-info"><span class="category-pill">${escapeHtml((product.category || 'other').replaceAll('-', ' '))}</span><h2>${escapeHtml(product.title)}</h2><p class="details-brand">${escapeHtml(product.brand || 'Stable collection')}</p><div class="details-rating"><span>★</span> ${Number(product.rating || 0).toFixed(1)} <span>·</span> ${escapeHtml(stockLabel)}</div><strong class="details-price">$${Number(product.price).toFixed(2)}</strong><p class="details-description">${escapeHtml(product.description || 'A considered addition to your collection.')}</p><div class="detail-purchase"><label for="detail-quantity">Quantity</label><input id="detail-quantity" type="number" min="1" max="${Math.max(1, Number(product.stock) || 0)}" value="1" ${product.stock < 1 ? 'disabled' : ''}><button class="primary-button" data-action="add-cart" data-id="${escapeHtml(product.id)}" ${product.stock < 1 ? 'disabled' : ''}>${icon('bag')} Add to bag</button></div><p class="purchase-note">Secure demo checkout · No payment details required</p></div></div>`;
+  $('#details-dialog').showModal();
+}
+
+function addToCart(product, quantity = 1) {
+  const current = cart.get(product.id)?.quantity || 0;
+  const amount = Math.max(1, Math.floor(Number(quantity) || 1));
+  if (current + amount > product.stock) return showToast(`Only ${product.stock} available.`);
+  cart.set(product.id, { product, quantity: current + amount });
+  renderCart();
+  addActivity('Added to bag', `${product.title} · ${amount} item${amount === 1 ? '' : 's'}`);
+  showToast(`${product.title} added to your bag.`);
+}
+
+function renderCart() {
+  const entries = [...cart.values()];
+  const count = entries.reduce((sum, entry) => sum + entry.quantity, 0);
+  $('#cart-count').textContent = count;
+  $('#cart-items').innerHTML = entries.length ? entries.map(({ product, quantity }) => `<article class="cart-item"><img src="${escapeHtml(product.thumbnail || product.images?.[0] || '')}" alt="" onerror="this.style.visibility='hidden'"><div class="cart-item-copy"><b>${escapeHtml(product.title)}</b><span>$${Number(product.price).toFixed(2)}</span><div class="quantity-control"><button data-cart-action="decrease" data-id="${escapeHtml(product.id)}" aria-label="Decrease quantity">−</button><span>${quantity}</span><button data-cart-action="increase" data-id="${escapeHtml(product.id)}" aria-label="Increase quantity">+</button><button class="cart-remove" data-cart-action="remove" data-id="${escapeHtml(product.id)}">Remove</button></div></div><strong class="cart-line-total">$${(product.price * quantity).toFixed(2)}</strong></article>`).join('') : '<div class="cart-empty"><span>♧</span><b>Your bag is empty</b><small>Explore the catalog and add something you like.</small></div>';
+  const subtotal = entries.reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0);
+  $('#cart-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  $('#checkout-button').disabled = !entries.length;
+}
+
 document.querySelectorAll('[data-view]').forEach(link => link.addEventListener('click', event => {
   event.preventDefault();
   setView(link.dataset.view);
@@ -169,26 +228,87 @@ $('#refresh-button').addEventListener('click', loadProducts);
 $('#previous-page').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderProducts(); } });
 $('#next-page').addEventListener('click', () => { if (currentPage < Math.ceil(visibleProducts.length / PAGE_SIZE)) { currentPage++; renderProducts(); } });
 $('#clear-filters').addEventListener('click', () => { $('#search').value = ''; $('#category-filter').value = 'all'; $('#sort-filter').value = 'featured'; currentPage = 1; renderProducts(); });
+$('#product-grid').addEventListener('click', event => {
+  if (event.target.closest('#clear-grid-filters')) $('#clear-filters').click();
+});
 $('#notifications-button').addEventListener('click', () => {
   $('.notification-dot').hidden = true;
   showToast(activity.length ? `You have ${activity.length} catalog update${activity.length === 1 ? '' : 's'} this session.` : 'You’re all caught up.');
 });
 
-$('#product-list').addEventListener('click', async event => {
+$('#theme-toggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+$('#profile-button').addEventListener('click', () => $('#profile-dialog').showModal());
+document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
+$('#list-view-button').addEventListener('click', () => setLayout('list'));
+$('#grid-view-button').addEventListener('click', () => setLayout('grid'));
+function setLayout(value) {
+  layout = value;
+  $('#list-view-button').classList.toggle('active', value === 'list');
+  $('#grid-view-button').classList.toggle('active', value === 'grid');
+  $('#list-view-button').setAttribute('aria-pressed', String(value === 'list'));
+  $('#grid-view-button').setAttribute('aria-pressed', String(value === 'grid'));
+  renderProducts();
+}
+$('#cart-button').addEventListener('click', () => { renderCart(); $('#cart-dialog').showModal(); });
+
+async function handleProductAction(event) {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const product = products.find(item => String(item.id) === button.dataset.id);
   if (!product) return;
+  if (button.dataset.action === 'view') return openDetails(product);
   if (button.dataset.action === 'edit') return openDialog(product);
+  if (button.dataset.action === 'add-cart') {
+    const quantity = button.closest('.detail-purchase') ? $('#detail-quantity').value : 1;
+    addToCart(product, quantity);
+    if ($('#details-dialog').open) $('#details-dialog').close();
+    return;
+  }
+  if (button.dataset.action !== 'delete') return;
   if (!confirm(`Delete “${product.title}” from the catalog?`)) return;
   try {
     const response = await fetch(`${API}/products/${product.id}`, { method: 'DELETE' });
     if (!response.ok) throw new Error();
     products = products.filter(item => item.id !== product.id);
+    cart.delete(product.id); renderCart();
     updateStats(); populateCategories(); currentPage = 1; renderProducts();
     addActivity('Product deleted', product.title);
     showToast('Product deleted.');
   } catch { showToast('Could not delete this product. Try again.'); }
+}
+
+$('#product-list').addEventListener('click', handleProductAction);
+$('#product-grid').addEventListener('click', handleProductAction);
+$('#details-content').addEventListener('click', event => {
+  if (event.target.closest('[data-close]')) return $('#details-dialog').close();
+  handleProductAction(event);
+});
+
+$('#cart-items').addEventListener('click', event => {
+  const button = event.target.closest('[data-cart-action]');
+  if (!button) return;
+  const id = products.find(product => String(product.id) === button.dataset.id)?.id;
+  const entry = cart.get(id);
+  if (!entry) return;
+  const action = button.dataset.cartAction;
+  if (action === 'remove' || (action === 'decrease' && entry.quantity <= 1)) cart.delete(id);
+  else if (action === 'decrease') entry.quantity--;
+  else if (action === 'increase') {
+    if (entry.quantity >= entry.product.stock) return showToast(`Only ${entry.product.stock} available.`);
+    entry.quantity++;
+  }
+  renderCart();
+});
+
+$('#checkout-button').addEventListener('click', () => {
+  if (!cart.size) return;
+  const purchased = [...cart.values()];
+  const subtotal = purchased.reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0);
+  purchased.forEach(({ product, quantity }) => { product.stock = Math.max(0, product.stock - quantity); });
+  cart.clear(); renderCart(); updateStats(); renderProducts();
+  $('#cart-dialog').close();
+  addActivity('Demo checkout completed', `${purchased.length} product type(s) · $${subtotal.toFixed(2)}. No payment was processed.`);
+  showToast('Demo checkout complete. No payment was processed.');
 });
 
 $('#product-form').addEventListener('submit', async event => {
@@ -230,5 +350,9 @@ document.addEventListener('keydown', event => {
 });
 
 renderActivity();
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('stable-theme') || 'dark'; } catch { /* Use the default theme when storage is unavailable. */ }
+setTheme(savedTheme);
+renderCart();
 setView(location.hash === '#activity' ? 'activity' : 'products');
 loadProducts();

@@ -41,7 +41,7 @@
           <div class="profile">
             <div class="avatar">SB</div>
             <span><b>Saw Ke Blute</b><small>Store admin</small></span
-            ><span class="profile-more">···</span>
+            ><button class="profile-more" id="profile-button" aria-label="Open admin profile" title="Admin profile">···</button>
           </div>
         </div>
       </aside>
@@ -51,9 +51,8 @@
           <div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumb-current">Products</b></div>
           <div class="top-actions">
             <span class="live-indicator"><i></i> Live catalog</span
-            ><button class="icon-button" id="notifications-button" aria-label="Notifications" title="Notifications">
-              ♧<span class="notification-dot"></span>
-            </button>
+            ><button class="icon-button theme-toggle" id="theme-toggle" aria-label="Switch to light mode" title="Switch theme"><span id="theme-icon">☼</span></button>
+            <button class="icon-button" id="notifications-button" aria-label="Notifications" title="Notifications">♧<span class="notification-dot"></span></button>
           </div>
         </header>
         <section class="page-heading">
@@ -108,9 +107,14 @@
               <h2>All products</h2>
               <p>Browse and manage your product inventory</p>
             </div>
-            <button class="filter-button" id="refresh-button">
-              <span class="refresh-icon">↻</span> Refresh
-            </button>
+            <div class="catalog-actions">
+              <div class="view-switch" role="group" aria-label="Catalog layout">
+                <button class="view-button active" id="list-view-button" aria-label="List view" title="List view" aria-pressed="true">☰</button>
+                <button class="view-button" id="grid-view-button" aria-label="Grid view" title="Grid view" aria-pressed="false">▦</button>
+              </div>
+              <button class="filter-button cart-button" id="cart-button" aria-label="Open shopping cart">♧ Cart <span id="cart-count">0</span></button>
+              <button class="filter-button" id="refresh-button"><span class="refresh-icon">↻</span> Refresh</button>
+            </div>
           </div>
           <div class="toolbar">
             <label class="search-box"
@@ -134,7 +138,7 @@
               </select>
             </div>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" id="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -160,6 +164,7 @@
               <span class="spinner"></span>Loading your catalog...
             </div>
           </div>
+          <div class="product-grid" id="product-grid" hidden></div>
           <footer class="table-footer">
             <span id="result-count">Loading products…</span>
             <div class="pagination">
@@ -249,6 +254,19 @@
           </button>
         </div>
       </form>
+    </dialog>
+    <dialog id="details-dialog" class="wide-dialog">
+      <div class="details-content" id="details-content"></div>
+    </dialog>
+    <dialog id="cart-dialog">
+      <div class="cart-content">
+        <div class="dialog-head"><div><div class="eyebrow">YOUR BAG</div><h2>Shopping cart</h2></div><button type="button" class="close-button" data-close="cart-dialog" aria-label="Close">×</button></div>
+        <div id="cart-items"></div>
+        <div class="cart-footer"><div class="cart-total"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div><button class="primary-button checkout-button" id="checkout-button">Continue to checkout <span>→</span></button><p class="demo-note">Demo checkout · No payment will be processed</p></div>
+      </div>
+    </dialog>
+    <dialog id="profile-dialog" class="profile-dialog">
+      <div class="profile-details"><div class="dialog-head"><div><div class="eyebrow">ADMIN ACCOUNT</div><h2>Profile</h2></div><button type="button" class="close-button" data-close="profile-dialog" aria-label="Close">×</button></div><div class="profile-card"><div class="avatar profile-avatar-large">SB</div><div><h3>Saw Ke Blute</h3><p>Store admin</p></div></div><div class="profile-detail-row"><span>Store</span><b>Stable</b></div><div class="profile-detail-row"><span>Access</span><b>Administrator</b></div><p class="profile-footnote">Profile details shown for this demo workspace.</p></div>
     </dialog>
     <div class="toast" id="toast" role="status"></div>
     <script src="app.js"></script>
